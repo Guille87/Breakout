@@ -681,7 +681,7 @@ Transform:
   m_GameObject: {fileID: 383361683}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -5, z: 0}
+  m_LocalPosition: {x: 0, y: -5.22, z: 0}
   m_LocalScale: {x: 8, y: 0.4, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1858,15 +1858,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 65658de6f7fa9c942ab38acdb6d8f020, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  force: 1
-  forceInc: 0.25
-  delay: 1.5
-  hitOffset: 0.2
+  tmpGameOver: {fileID: 1819171374}
   sfxPaddle: {fileID: 8300000, guid: 12d6b873dd96ec34f82417c0b3af465d, type: 3}
   sfxBrick: {fileID: 8300000, guid: e916dc8aa40751e45bc9eb57029f48bb, type: 3}
   sfxWall: {fileID: 8300000, guid: 012332f24b584f347a77125b4fb9b0b9, type: 3}
   sfxFail: {fileID: 8300000, guid: 8369920653c15d54bbe0eb8d2ab44ee7, type: 3}
   sfxNextLevel: {fileID: 8300000, guid: c9decaaf74ccda549b75bd70bdf3ef52, type: 3}
+  force: 1
+  forceInc: 0.25
+  delay: 1.5
+  hitOffset: 0.2
 --- !u!82 &925922405
 AudioSource:
   m_ObjectHideFlags: 0

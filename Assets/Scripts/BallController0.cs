@@ -29,7 +29,7 @@ public class BallController0 : MonoBehaviour
 
         rb = GetComponent<Rigidbody2D>();
 
-        Invoke("LaunchBall", delay);
+        Invoke(nameof(LaunchBall), delay);
     }
 
     private void LaunchBall()

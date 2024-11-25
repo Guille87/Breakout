@@ -46,11 +46,8 @@ public class BallController : MonoBehaviour
     void Start()
     {
         sceneId = SceneManager.GetActiveScene().buildIndex;
-
         rb = GetComponent<Rigidbody2D>();
-
         paddle = GameObject.FindWithTag("paddle");
-
         Invoke(nameof(LaunchBall), delay);
     }
 
@@ -91,23 +88,83 @@ public class BallController : MonoBehaviour
         if (other.tag == "wall-bottom")
         {
             AudioManager.PlaySound(sfxFail, 0.2f);
-            
-            // Decrementar las vidas
-            GameController.UpdateLifes(-1);
 
             // Notificar que la bola se perdió
             OnBallLost?.Invoke();
+            if (GameController.IsSinglePlayer)
+            {
+                GameController.UpdateLifes(-1, GameController.currentPlayer);
 
-            // Verificar si las vidas llegaron a 0
-            if (GameController.lifes <= 0)
-            {
-                GameOver();
+                if (GameController.player1Lifes <= 0)
+                {
+                    GameOver();
+                }
+                else
+                {
+                    ResetPaddle();
+                    Invoke(nameof(LaunchBall), delay);
+                }
             }
-            else
+            else if (GameController.IsTwoPlayerTurnBased)
             {
-                // Si aún quedan vidas, reiniciamos la bola
-                ResetPaddle();
-                Invoke(nameof(LaunchBall), delay);
+                GameController.UpdateLifes(-1, GameController.currentPlayer);
+                
+                // Verificar si el jugador actual ha perdido todas las vidas
+                if (GameController.currentPlayer == 1 && GameController.player1Lifes <= 0)
+                {
+                    // Si el jugador 1 ha perdido todas las vidas
+                    // Verificar si el jugador 2 tiene vidas
+                    if (GameController.player2Lifes > 0)
+                    {
+                        // Cambiar al jugador 2
+                        GameController.SwitchPlayer();
+                    }
+                    else
+                    {
+                        // Si ambos jugadores han perdido todas las vidas, fin del juego
+                        GameOver();
+                    }
+                }
+                else if (GameController.currentPlayer == 2 && GameController.player2Lifes <= 0)
+                {
+                    // Si el jugador 2 ha perdido todas las vidas
+                    // Verificar si el jugador 1 tiene vidas
+                    if (GameController.player1Lifes > 0)
+                    {
+                        // Cambiar al jugador 1
+                        GameController.SwitchPlayer();
+                    }
+                    else
+                    {
+                        // Si ambos jugadores han perdido todas las vidas, fin del juego
+                        GameOver();
+                    }
+                }
+                else
+                {
+                    // Si el jugador activo no ha perdido todas sus vidas, verificamos el turno
+                    if (GameController.currentPlayer == 1 && GameController.player1Lifes > 0 && GameController.player2Lifes <= 0)
+                    {
+                        // Si el jugador 1 sigue con vidas y el jugador 2 no tiene, continúa jugando el jugador 1
+                    }
+                    else if (GameController.currentPlayer == 2 && GameController.player2Lifes > 0 && GameController.player1Lifes <= 0)
+                    {
+                        // Si el jugador 2 sigue con vidas y el jugador 1 no tiene, continúa jugando el jugador 2
+                    }
+                    else
+                    {
+                        // Si ambos jugadores tienen vidas, cambiamos de turno
+                        GameController.SwitchPlayer();
+                    }
+                }
+
+                // Verificar si ambos jugadores han perdido todas las vidas
+                if (!GameController.IsGameOver())
+                {
+                    // Si aún quedan vidas, reiniciamos la bola
+                    ResetPaddle();
+                    Invoke(nameof(LaunchBall), delay);
+                }
             }
         }
         else if (other.tag == "brick-pass")
@@ -158,8 +215,8 @@ public class BallController : MonoBehaviour
     {
         AudioManager.PlaySound(sfxBrick, 0.2f);
 
-        // update player's score
-        GameController.UpdateScore(bricks[obj.tag]);
+        // Actualizar la puntuación del jugador actual
+        GameController.UpdateScore(bricks[obj.tag], GameController.currentPlayer);
 
         Destroy(obj);
 
@@ -247,10 +304,8 @@ public class BallController : MonoBehaviour
     private void GoToNextLevel()
     {
         AudioManager.PlaySound(sfxNextLevel, 0.2f);
-
         rb.linearVelocity = Vector2.zero;
         GetComponent<SpriteRenderer>().enabled = false;
-
         Invoke(nameof(NextScene), 3);
     }
 

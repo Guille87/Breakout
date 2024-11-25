@@ -5,28 +5,36 @@ using UnityEngine.SceneManagement;
 
 public class StartGame : MonoBehaviour
 {
-    AudioSource sfx;
     [SerializeField] Transform paddle;
     [SerializeField] GameObject ball;
-    [SerializeField] TextMeshProUGUI msg;
+    [SerializeField] TextMeshProUGUI tmpStart;
     [SerializeField] float duration;
-
-    void Start()
-    {
-        sfx = GetComponent<AudioSource>();
-    }
     
-    void Update()
+    public void StartGameTransition(int mode)
     {
-        if (Input.anyKeyDown)
+        // Ocultar elementos iniciales
+        ball.SetActive(false);
+        tmpStart.enabled = false;
+
+        // Iniciar la transición y cargar la escena según el modo seleccionado
+        StartCoroutine(TransitionAndLoadScene(mode));
+    }
+
+    private IEnumerator TransitionAndLoadScene(int mode)
+    {
+        GameController.SetMode(mode); // Configurar el modo de juego
+        Vector3 scaleStart = paddle.localScale;
+        Vector3 scaleEnd = new Vector3(0, scaleStart.y, scaleStart.z);
+
+        float t = 0;
+        while (t < duration)
         {
-            ball.SetActive(false);
-            msg.enabled = false;
-
-            sfx.Play();
-
-            StartCoroutine("StartNextLevel");
+            t += Time.deltaTime;
+            paddle.localScale = Vector3.Lerp(scaleStart, scaleEnd, t / duration);
+            yield return null;
         }
+
+        SceneManager.LoadScene(1);
     }
 
     IEnumerator StartNextLevel()

@@ -8,6 +8,7 @@ public class BallController : MonoBehaviour
 {
     [Header("References")]
     [SerializeField]  TextMeshProUGUI tmpGameOver;
+    [SerializeField] TextMeshProUGUI tmpCurrentPlayer;
 
     [Header("Audio Clips")]
     [SerializeField] AudioClip sfxPaddle;
@@ -31,7 +32,8 @@ public class BallController : MonoBehaviour
     int brickCount;
     int sceneId;
 
-    GameObject paddle;
+    GameObject paddle1;
+    GameObject paddle2;
     bool halved;
 
     Dictionary<string, int> bricks = new Dictionary<string, int>
@@ -47,8 +49,15 @@ public class BallController : MonoBehaviour
     {
         sceneId = SceneManager.GetActiveScene().buildIndex;
         rb = GetComponent<Rigidbody2D>();
-        paddle = GameObject.FindWithTag("paddle");
+        paddle1 = GameObject.FindWithTag("paddle1");
+        paddle2 = GameObject.FindWithTag("paddle2");
         Invoke(nameof(LaunchBall), delay);
+
+        // Configurar visibilidad de las palas
+        ConfigurePaddlesVisibility();
+
+        // Mostrar el jugador actual al iniciar
+        UpdateCurrentPlayerText();
     }
 
     private void LaunchBall()
@@ -56,6 +65,58 @@ public class BallController : MonoBehaviour
         ResetBall();
         Vector2 randomDir = GetRandomDirection();
         ApplyForce(randomDir);
+    }
+
+    private void ConfigurePaddlesVisibility()
+{
+    if (GameController.IsSinglePlayer || GameController.IsTwoPlayerTurnBased)
+    {
+        paddle1.SetActive(true);
+        paddle2.SetActive(false);
+    }
+    else if (GameController.IsTwoPlayerSimultaneous)
+    {
+        paddle1.SetActive(true);
+        paddle2.SetActive(true);
+    }
+}
+
+    private void UpdateCurrentPlayerText()
+    {
+        if (tmpCurrentPlayer != null)
+        {
+            if (GameController.IsTwoPlayerTurnBased)
+            {
+                tmpCurrentPlayer.text = $"JUGADOR {GameController.currentPlayer}";
+                tmpCurrentPlayer.gameObject.SetActive(true); // Muestra el texto
+            }
+            else
+            {
+                tmpCurrentPlayer.gameObject.SetActive(false); // Oculta el texto en otros modos
+            }
+        }
+    }
+
+    // Actualiza el texto al cambiar de jugador
+    void OnEnable()
+    {
+        GameController.OnPlayerSwitched += UpdatePaddleVisibility;
+        GameController.OnPlayerSwitched += UpdateCurrentPlayerText;
+    }
+
+    void OnDisable()
+    {
+        GameController.OnPlayerSwitched -= UpdatePaddleVisibility;
+        GameController.OnPlayerSwitched -= UpdateCurrentPlayerText;
+    }
+
+    private void UpdatePaddleVisibility()
+    {
+        if (GameController.IsTwoPlayerTurnBased)
+        {
+            paddle1.SetActive(GameController.currentPlayer == 1);
+            paddle2.SetActive(GameController.currentPlayer == 2);
+        }
     }
 
     private void OnCollisionEnter2D(Collision2D other)
@@ -66,8 +127,7 @@ public class BallController : MonoBehaviour
         {
             DestroyBrick(other.gameObject);
         }
-
-        else if (tag == "paddle")
+        else if (tag == "paddle1" || tag == "paddle2")
         {
             HandlePaddleCollision(other);
         }
@@ -91,7 +151,7 @@ public class BallController : MonoBehaviour
 
             // Notificar que la bola se perdió
             OnBallLost?.Invoke();
-            if (GameController.IsSinglePlayer)
+            if (GameController.IsSinglePlayer || GameController.IsTwoPlayerSimultaneous)
             {
                 GameController.UpdateLifes(-1, GameController.currentPlayer);
 
@@ -196,7 +256,8 @@ public class BallController : MonoBehaviour
 
     private void ResetBall()
     {
-        transform.position = Vector3.zero;
+        float randomX = UnityEngine.Random.Range(-2f, 2f); // Cambia -5 y 5 por el rango deseado
+        transform.position = new Vector3(randomX, 0, 0);   // Coloca la pelota en X aleatoria
         rb.linearVelocity = Vector2.zero;
     }
 
@@ -289,9 +350,13 @@ public class BallController : MonoBehaviour
     {
         halved = halve;
 
-        Vector3 scale = paddle.transform.localScale;
+        Vector3 scale = paddle1.transform.localScale = paddle2.transform.localScale;
 
-        paddle.transform.localScale = halved ?
+        paddle1.transform.localScale = halved ?
+            new Vector3(scale.x * 0.5f, scale.y, scale.z):
+            new Vector3(scale.x * 2f, scale.y, scale.z);
+        
+        paddle2.transform.localScale = halved ?
             new Vector3(scale.x * 0.5f, scale.y, scale.z):
             new Vector3(scale.x * 2f, scale.y, scale.z);
     }

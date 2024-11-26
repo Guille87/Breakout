@@ -20,8 +20,7 @@ public class BallController0 : MonoBehaviour
         {"brick-a"},
         {"brick-r"}
     };
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    
     void Start()
     {
         sfx = GetComponent<AudioSource>();
@@ -54,18 +53,15 @@ public class BallController0 : MonoBehaviour
 
         if (bricks.Contains(tag))
         {
-            sfx.clip = sfxBrick;
-            sfx.Play();
+            AudioManager.PlaySound(sfxBrick, 0.2f);
         }
-        else if (tag == "paddle")
+        else if (tag == "paddle1")
         {
-            sfx.clip = sfxPaddle;
-            sfx.Play();
+            AudioManager.PlaySound(sfxPaddle, 0.2f);
         }
         else if (tag == "wall-top" || tag == "wall-lateral")
         {
-            sfx.clip = sfxWall;
-            sfx.Play();
+            AudioManager.PlaySound(sfxWall, 0.2f);
         }
     }
 }

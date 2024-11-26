@@ -4,7 +4,8 @@
 TagManager:
   serializedVersion: 3
   tags:
-  - paddle
+  - paddle1
+  - paddle2
   - wall-lateral
   - wall-top
   - wall-bottom

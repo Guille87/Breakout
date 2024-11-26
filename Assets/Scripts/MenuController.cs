@@ -1,17 +1,20 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class MenuController : MonoBehaviour
 {
     [SerializeField] AudioClip sfxNextLevel;
-    [SerializeField] private TextMeshProUGUI option1Text;
-    [SerializeField] private TextMeshProUGUI option2Text;
+    [SerializeField] AudioClip sfxWall;
+    [SerializeField] private TextMeshProUGUI tmp1Player;
+    [SerializeField] private TextMeshProUGUI tmp2PlayerPerTurns;
+    [SerializeField] private TextMeshProUGUI tmp2PlayerSimultaneous;
     [SerializeField] private GameObject indicator;
     [SerializeField] private StartGame startGame; // Referencia al script StartGame
     private int selectedOption = 0; // 0 = "1 Jugador", 1 = "2 Jugadores por turnos"
+    private int totalOptions = 3; // Número total de opciones
     private Coroutine blinkCoroutine;
+
 
     void Start()
     {
@@ -24,12 +27,14 @@ public class MenuController : MonoBehaviour
         // Navegación con las flechas
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
-            selectedOption = Mathf.Max(0, selectedOption - 1); // No permite valores negativos
+            AudioManager.PlaySound(sfxWall, 0.2f);
+            selectedOption = (selectedOption - 1 + totalOptions) % totalOptions; // Navegar hacia arriba, circular
             UpdateIndicatorPosition();
         }
         else if (Input.GetKeyDown(KeyCode.DownArrow))
         {
-            selectedOption = Mathf.Min(1, selectedOption + 1); // Máximo es 1
+            AudioManager.PlaySound(sfxWall, 0.2f);
+            selectedOption = (selectedOption + 1) % totalOptions; // Navegar hacia abajo, circular
             UpdateIndicatorPosition();
         }
 
@@ -45,11 +50,15 @@ public class MenuController : MonoBehaviour
         // Ajustar la posición del indicador según la opción seleccionada
         if (selectedOption == 0)
         {
-            indicator.transform.position = option1Text.transform.position + Vector3.left * 50f;
+            indicator.transform.position = tmp1Player.transform.position + Vector3.left * 50f;
         }
         else if (selectedOption == 1)
         {
-            indicator.transform.position = option2Text.transform.position + Vector3.left * 50f;
+            indicator.transform.position = tmp2PlayerPerTurns.transform.position + Vector3.left * 50f;
+        }
+        else if (selectedOption == 2)
+        {
+            indicator.transform.position = tmp2PlayerSimultaneous.transform.position + Vector3.left * 50f;
         }
 
         // Reinicia el parpadeo en la nueva opción seleccionada
@@ -64,14 +73,23 @@ public class MenuController : MonoBehaviour
         if (selectedOption == 0)
         {
             StartCoroutine(StartFastBlinking(0.1f)); // Acelerar el parpadeo
-            option2Text.enabled = false; // Oculta "2 Jugadores"
+            tmp2PlayerPerTurns.enabled = false; // Oculta "2 Jugadores por turnos"
+            tmp2PlayerSimultaneous.enabled = false; // Oculta "2 Jugadores simultaneos"
             startGame.StartGameTransition(1); // Llamar a la transición para 1 jugador
         }
         else if (selectedOption == 1)
         {
             StartCoroutine(StartFastBlinking(0.1f)); // Acelerar el parpadeo
-            option1Text.enabled = false; // Oculta "1 Jugador"
-            startGame.StartGameTransition(2); // Llamar a la transición para 2 jugadores
+            tmp1Player.enabled = false; // Oculta "1 Jugador"
+            tmp2PlayerSimultaneous.enabled = false; // Oculta "2 Jugadores simultaneos"
+            startGame.StartGameTransition(2); // Llamar a la transición para 2 jugadores por turnos
+        }
+        else if (selectedOption == 2)
+        {
+            StartCoroutine(StartFastBlinking(0.1f)); // Acelerar el parpadeo
+            tmp1Player.enabled = false; // Oculta "1 Jugador"
+            tmp2PlayerPerTurns.enabled = false; // Oculta "2 Jugadores por turnos"
+            startGame.StartGameTransition(3); // Llamar a la transición para 2 jugadores simultaneos
         }
     }
 
@@ -95,8 +113,9 @@ public class MenuController : MonoBehaviour
     {
         // Detiene el parpadeo y muestra ambos textos
         if (blinkCoroutine != null) StopCoroutine(blinkCoroutine);
-        option1Text.enabled = true;
-        option2Text.enabled = true;
+        tmp1Player.enabled = true;
+        tmp2PlayerPerTurns.enabled = true;
+        tmp2PlayerSimultaneous.enabled = true;
     }
 
     private void RestartBlinking()
@@ -108,10 +127,24 @@ public class MenuController : MonoBehaviour
     private IEnumerator BlinkSelectedOption(float blinkSpeed = 0.4f)
     {
         // Detenemos el parpadeo en todas las opciones inicialmente
-        option1Text.enabled = true;
-        option2Text.enabled = true;
+        tmp1Player.enabled = true;
+        tmp2PlayerPerTurns.enabled = true;
+        tmp2PlayerSimultaneous.enabled = true;
         
-        TextMeshProUGUI selectedText = selectedOption == 0 ? option1Text : option2Text;
+        TextMeshProUGUI selectedText;
+
+        if (selectedOption == 0)
+        {
+            selectedText = tmp1Player; // Opción 1 seleccionada
+        }
+        else if (selectedOption == 1)
+        {
+            selectedText = tmp2PlayerPerTurns; // Opción 2 seleccionada
+        }
+        else
+        {
+            selectedText = tmp2PlayerSimultaneous; // Opción 3 seleccionada
+        }
 
         while (true)
         {
